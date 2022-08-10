@@ -7,7 +7,7 @@ module KeySchedule (
 );
 
 
-wire counter_flag, c0, c1, c2, c3;//, final_key;
+wire counter_flag, c0, c1, c2, c3;
 
 reg en_subbytes, en_rotword, en_XOR;
 reg [2:0] counter;	
@@ -25,13 +25,13 @@ wire [31:0]  subbytes_i;
 //assign RCON = {8'h01,8'h02,8'h04,8'h08,8'h10,8'h20,8'h40,8'h80,8'h1b,8'h36};
 
 localparam [1:0]	IDLE     = 'b00,
-					RotWord  = 'b01,
-					SubBytes = 'b11,
-					XOR 	 = 'b10;
+			RotWord  = 'b01,
+			SubBytes = 'b11,
+			XOR 	 = 'b10;
 					
 reg [1:0] current_state, next_state;		
 
-//assign final_key = (RCON == 8'h36) ? 1'b1 : 1'b0;			
+	
 
 always @ (posedge clk or negedge rst_n)
 begin
@@ -76,11 +76,7 @@ begin
 							en_XOR = 1'b1;
 							if(!counter_flag)
 								next_state = XOR;
-							/*else if (final_key)
-							begin
-								next_state = IDLE;
-								Key_flag = 1'b1;
-							end*/	
+							
 							else
 							begin
 								next_state = RotWord;
@@ -138,12 +134,6 @@ begin
 		subbytes_o <= subbytes_o_w;
 end
 
-/*SubBytes KeySchedule_SubBytes (
-					.clk(clk),.rst_n(rst_n),.en(en_subbytes),
-					.subbytes_i(subbytes_i),
-					.subbytes_o(subbyte_Key_o_w)
-);
-*/
 
 // XOR stage Logic	
 assign counter_flag = (counter == 3'd4) ? 1'b1 : 1'b0 ;		
