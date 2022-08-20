@@ -1,7 +1,8 @@
 module SubBytes (
 					input clk,rst_n,en,
 					input [127:0]  subbytes_i,
-					output reg [127:0]  subbytes_o
+					output reg [127:0]  subbytes_o,
+					output reg subbytes_flag
 );
 
 wire [31:0]  subbytes_o_w;
@@ -26,11 +27,12 @@ end
 always @ (posedge clk or negedge rst_n)		
 
 begin
-
+	subbytes_flag <= 1'b0;
 	if (!rst_n || !en)
 	begin
 		counter <= 3'b0;
 		subbytes_o <= 128'd0;
+		subbytes_flag <= 1'b0;
 	end
 	else if (c0)
 		begin	
@@ -68,6 +70,7 @@ begin
 		subbytes_o[((32*0)+31):(32*0)] <= subbytes_o[((32*0)+31):(32*0)];
 		subbytes_o[((32*2)+31):(32*2)] <= subbytes_o[((32*2)+31):(32*2)];
 		counter <= 3'b0;	
+		subbytes_flag <= 1'b1;
 	end
 	else
 		begin	

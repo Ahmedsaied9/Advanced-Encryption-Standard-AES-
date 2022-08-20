@@ -1,5 +1,5 @@
 module KeySchedule (
-						input clk,rst_n,en,
+						input clk,rst_n,en,sel,
 						input [7:0] RCON,
 						input [127:0] CipherKey_i,
 						output reg Key_flag,
@@ -7,14 +7,14 @@ module KeySchedule (
 );
 
 
-wire counter_flag, c0, c1, c2, c3;
+wire counter_flag, c0, c1, c2, c3;//, final_key;
 
 reg en_subbytes, en_rotword, en_XOR;
 reg [2:0] counter;	
 
 reg [127:0]  XOR_Key_o_w;
 
-reg [31:0] Key_o_RotWord,Key_o_w;
+reg [31:0] Key_o_RotWord,Key_o_w,MUX_o;
 
 wire [31:0] subbyte_Key_o_w;
 
@@ -25,13 +25,13 @@ wire [31:0]  subbytes_i;
 //assign RCON = {8'h01,8'h02,8'h04,8'h08,8'h10,8'h20,8'h40,8'h80,8'h1b,8'h36};
 
 localparam [1:0]	IDLE     = 'b00,
-			RotWord  = 'b01,
-			SubBytes = 'b11,
-			XOR 	 = 'b10;
+					RotWord  = 'b01,
+					SubBytes = 'b11,
+					XOR 	 = 'b10;
 					
 reg [1:0] current_state, next_state;		
 
-	
+//assign final_key = (RCON == 8'h36) ? 1'b1 : 1'b0;			
 
 always @ (posedge clk or negedge rst_n)
 begin
@@ -48,6 +48,7 @@ begin
 							en_rotword = 1'b0;
 							en_subbytes = 1'b0;
 							en_XOR = 1'b0;
+							
 						
 		case (current_state)
 		
@@ -76,7 +77,11 @@ begin
 							en_XOR = 1'b1;
 							if(!counter_flag)
 								next_state = XOR;
-							
+							/*else if (final_key)
+							begin
+								next_state = IDLE;
+								Key_flag = 1'b1;
+							end*/	
 							else
 							begin
 								next_state = RotWord;
@@ -115,6 +120,16 @@ begin
 		Key_o_w = 'b0;
 end	
 
+//Input MUX
+
+always @ (*)
+begin
+		case (sel)
+			
+		1'b0	:	MUX_o =  CipherKey_i;
+		1'b1	:	MUX_o =  Key_o;
+		endcase
+end
 
 // SubBytes Logic
 reg [31:0] subbytes_o;
@@ -134,6 +149,12 @@ begin
 		subbytes_o <= subbytes_o_w;
 end
 
+/*SubBytes KeySchedule_SubBytes (
+					.clk(clk),.rst_n(rst_n),.en(en_subbytes),
+					.subbytes_i(subbytes_i),
+					.subbytes_o(subbyte_Key_o_w)
+);
+*/
 
 // XOR stage Logic	
 assign counter_flag = (counter == 3'd4) ? 1'b1 : 1'b0 ;		
